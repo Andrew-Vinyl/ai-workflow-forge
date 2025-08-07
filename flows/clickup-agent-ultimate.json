@@ -773,7 +773,36 @@
       "main": [
         [
           {
+            "node": "AI Model Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "AI Model Router": {
+      "main": [
+        [
+          {
+            "node": "Task Manager AI (GPT-4o-mini)",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
             "node": "Task Manager AI (Vader)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Manager AI (GPT-4o-mini)": {
+      "main": [
+        [
+          {
+            "node": "Final Response",
             "type": "main",
             "index": 0
           }

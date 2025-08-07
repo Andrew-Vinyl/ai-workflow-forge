@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Workflow Forge - User Configuration</title>
+    <script src="https://unpkg.com/@supabase/supabase-js@2"></script>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: #f5f5f5; }
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+        .header { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .card { background: white; padding: 20px; border-radius: 8px; margin-bottom: 20px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
+        .form-group { margin-bottom: 15px; }
+        label { display: block; margin-bottom: 5px; font-weight: 500; }
+        input, select, textarea { width: 100%; padding: 8px 12px; border: 1px solid #ddd; border-radius: 4px; }
+        button { background: #007bff; color: white; padding: 10px 20px; border: none; border-radius: 4px; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .btn-secondary { background: #6c757d; }
+        .btn-secondary:hover { background: #545b62; }
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .status { padding: 10px; border-radius: 4px; margin-bottom: 15px; }
+        .status.success { background: #d4edda; color: #155724; border: 1px solid #c3e6cb; }
+        .status.error { background: #f8d7da; color: #721c24; border: 1px solid #f5c6cb; }
+        .user-list { max-height: 400px; overflow-y: auto; }
+        .user-item { padding: 10px; border-bottom: 1px solid #eee; cursor: pointer; }
+        .user-item:hover { background: #f8f9fa; }
+        .user-item.active { background: #e3f2fd; }
+        .tabs { display: flex; border-bottom: 1px solid #ddd; margin-bottom: 20px; }
+        .tab { padding: 10px 20px; cursor: pointer; border-bottom: 2px solid transparent; }
+        .tab.active { border-bottom-color: #007bff; color: #007bff; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🤖 AI Workflow Forge - Configuration Center</h1>
+            <p>Manage team members, clients, projects, and AI agent configurations</p>
+        </div>
+
+        <div id="status" class="status" style="display: none;"></div>
+
+        <div class="tabs">
+            <div class="tab active" onclick="showTab('users')">👥 Team Management</div>
+            <div class="tab" onclick="showTab('clients')">🏢 Client Management</div>
+            <div class="tab" onclick="showTab('projects')">📁 Project Management</div>
+            <div class="tab" onclick="showTab('training')">🧠 Agency Training</div>
+        </div>
+
+        <!-- Team Management Tab -->
+        <div id="users-tab" class="tab-content active">
+            <div class="grid">
+                <div class="card">
+                    <h3>Team Members</h3>
+                    <div id="user-list" class="user-list"></div>
+                    <button onclick="addNewUser()" style="margin-top: 10px;">+ Add Team Member</button>
+                </div>
+                <div class="card">
+                    <h3>User Configuration</h3>
+                    <form id="user-form">
+                        <div class="form-group">
+                            <label>User ID</label>
+                            <input type="text" id="user_id" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <input type="email" id="email" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Full Name</label>
+                            <input type="text" id="full_name" required>
+                        </div>
+                        <div class="form-group">
+                            <label>Role</label>
+                            <select id="role" required>
+                                <option value="admin">Admin</option>
+                                <option value="employee">Employee</option>
+                                <option value="developer">Developer</option>
+                                <option value="client">Client</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Slack Channel ID</label>
+                            <input type="text" id="slack_channel_id">
+                        </div>
+                        <div class="form-group">
+                            <label>GitHub Username</label>
+                            <input type="text" id="github_username">
+                        </div>
+                        <div class="form-group">
+                            <label>Preferred AI Model</label>
+                            <select id="preferred_ai_model">
+                                <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                                <option value="claude-3-haiku">Claude 3 Haiku</option>
+                                <option value="gpt-4">GPT-4</option>
+                                <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label>Default ClickUp List ID</label>
+                            <input type="text" id="default_list_id" value="901317115211">
+                        </div>
+                        <button type="submit">Save Configuration</button>
+                        <button type="button" class="btn-secondary" onclick="clearForm()">Clear</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Client Management Tab -->
+        <div id="clients-tab" class="tab-content">
+            <div class="card">
+                <h3>Client Management</h3>
+                <p>Client management interface coming soon...</p>
+            </div>
+        </div>
+
+        <!-- Project Management Tab -->
+        <div id="projects-tab" class="tab-content">
+            <div class="card">
+                <h3>Project Management</h3>
+                <p>Project management interface coming soon...</p>
+            </div>
+        </div>
+
+        <!-- Agency Training Tab -->
+        <div id="training-tab" class="tab-content">
+            <div class="card">
+                <h3>Agency Training & Best Practices</h3>
+                <p>Training management interface coming soon...</p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Supabase configuration - Use environment variables in production
+        // For development, create a config.js file (not committed to Git)
+        const supabaseUrl = window.SUPABASE_URL || 'https://rlkcxmfezvimfsdmdrlg.supabase.co';
+        const supabaseKey = window.SUPABASE_ANON_KEY || 'YOUR_ANON_KEY_HERE';
+
+        if (supabaseKey === 'YOUR_ANON_KEY_HERE') {
+            alert('⚠️ Please configure your Supabase credentials in config.js');
+        }
+
+        const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+        let currentUser = null;
+
+        // Tab management
+        function showTab(tabName) {
+            document.querySelectorAll('.tab').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+            
+            event.target.classList.add('active');
+            document.getElementById(tabName + '-tab').classList.add('active');
+        }
+
+        // Load users on page load
+        document.addEventListener('DOMContentLoaded', loadUsers);
+
+        async function loadUsers() {
+            try {
+                const { data: users, error } = await supabase
+                    .from('user_profiles')
+                    .select(`
+                        *,
+                        user_configs (*)
+                    `)
+                    .order('created_at', { ascending: false });
+
+                if (error) throw error;
+
+                const userList = document.getElementById('user-list');
+                userList.innerHTML = users.map(user => `
+                    <div class="user-item" onclick="selectUser('${user.user_id}')">
+                        <strong>${user.full_name}</strong> (${user.role})<br>
+                        <small>${user.email}</small>
+                    </div>
+                `).join('');
+
+            } catch (error) {
+                showStatus('Error loading users: ' + error.message, 'error');
+            }
+        }
+
+        async function selectUser(userId) {
+            try {
+                const { data: user, error } = await supabase
+                    .from('user_profiles')
+                    .select(`
+                        *,
+                        user_configs (*)
+                    `)
+                    .eq('user_id', userId)
+                    .single();
+
+                if (error) throw error;
+
+                currentUser = user;
+                populateForm(user);
+                
+                // Highlight selected user
+                document.querySelectorAll('.user-item').forEach(item => item.classList.remove('active'));
+                event.target.classList.add('active');
+
+            } catch (error) {
+                showStatus('Error loading user: ' + error.message, 'error');
+            }
+        }
+
+        function populateForm(user) {
+            document.getElementById('user_id').value = user.user_id;
+            document.getElementById('email').value = user.email;
+            document.getElementById('full_name').value = user.full_name;
+            document.getElementById('role').value = user.role;
+            
+            if (user.user_configs && user.user_configs.length > 0) {
+                const config = user.user_configs[0];
+                document.getElementById('slack_channel_id').value = config.slack_channel_id || '';
+                document.getElementById('github_username').value = config.integration_settings?.github_username || '';
+                document.getElementById('preferred_ai_model').value = config.preferred_ai_model || 'claude-3-sonnet';
+                document.getElementById('default_list_id').value = config.integration_settings?.default_list_id || '901317115211';
+            }
+        }
+
+        function clearForm() {
+            document.getElementById('user-form').reset();
+            document.getElementById('default_list_id').value = '901317115211';
+            currentUser = null;
+            document.querySelectorAll('.user-item').forEach(item => item.classList.remove('active'));
+        }
+
+        function addNewUser() {
+            clearForm();
+            document.getElementById('user_id').focus();
+        }
+
+        document.getElementById('user-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const formData = new FormData(e.target);
+            const userData = {
+                user_id: formData.get('user_id'),
+                email: formData.get('email'),
+                full_name: formData.get('full_name'),
+                role: formData.get('role'),
+                team_id: 'vinyl_core'
+            };
+
+            const configData = {
+                user_id: formData.get('user_id'),
+                slack_channel_id: formData.get('slack_channel_id'),
+                preferred_ai_model: formData.get('preferred_ai_model'),
+                integration_settings: {
+                    github_username: formData.get('github_username'),
+                    default_list_id: formData.get('default_list_id')
+                }
+            };
+
+            try {
+                // Upsert user profile
+                const { error: userError } = await supabase
+                    .from('user_profiles')
+                    .upsert(userData);
+
+                if (userError) throw userError;
+
+                // Upsert user config
+                const { error: configError } = await supabase
+                    .from('user_configs')
+                    .upsert(configData);
+
+                if (configError) throw configError;
+
+                showStatus('User configuration saved successfully!', 'success');
+                loadUsers();
+
+            } catch (error) {
+                showStatus('Error saving configuration: ' + error.message, 'error');
+            }
+        });
+
+        function showStatus(message, type) {
+            const status = document.getElementById('status');
+            status.textContent = message;
+            status.className = `status ${type}`;
+            status.style.display = 'block';
+            
+            setTimeout(() => {
+                status.style.display = 'none';
+            }, 5000);
+        }
+    </script>
+</body>
+</html>

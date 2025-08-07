@@ -1,0 +1,43 @@
+{
+  "agent_name": "ClickUp AI Agent - Ultimate Controller",
+  "version": "1.0.0",
+  "description": "Multi-mode ClickUp task management controller",
+  "capabilities": [
+    "task_management",
+    "comment_processing",
+    "status_updates",
+    "report_generation",
+    "workflow_automation"
+  ],
+  "modes": {
+    "task_manager": {
+      "description": "Create, update, and manage tasks",
+      "actions": ["create_task", "update_task", "delete_task", "get_task"]
+    },
+    "comment_processor": {
+      "description": "Process and respond to task comments",
+      "actions": ["add_comment", "process_comment", "analyze_sentiment"]
+    },
+    "status_updater": {
+      "description": "Update task statuses and priorities",
+      "actions": ["update_status", "set_priority", "assign_user"]
+    },
+    "report_generator": {
+      "description": "Generate reports and analytics",
+      "actions": ["task_summary", "team_performance", "project_status"]
+    },
+    "automation_handler": {
+      "description": "Handle automated workflows",
+      "actions": ["trigger_automation", "process_webhook", "schedule_task"]
+    }
+  },
+  "default_mode": "task_manager",
+  "api_endpoints": {
+    "base_url": "https://api.clickup.com/api/v2",
+    "auth_type": "bearer_token"
+  },
+  "rate_limits": {
+    "requests_per_minute": 100,
+    "burst_limit": 10
+  }
+}

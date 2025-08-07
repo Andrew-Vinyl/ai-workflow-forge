@@ -1,0 +1,815 @@
+{
+  "name": "ClickUp AI Agent - Ultimate Controller",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "clickup-agent-v2",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [240, 300],
+      "webhookId": "clickup-agent-v2"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.body.user_id || $json.body.client_id || 'system' }}"
+            },
+            {
+              "name": "agent_mode",
+              "value": "={{ $json.body.agent_mode || 'task_manager' }}"
+            },
+            {
+              "name": "operation",
+              "value": "={{ $json.body.operation || 'create' }}"
+            },
+            {
+              "name": "client_id",
+              "value": "={{ $json.body.client_id || 'vinyl_internal' }}"
+            },
+            {
+              "name": "project_id",
+              "value": "={{ $json.body.project_id || null }}"
+            }
+          ],
+          "object": [
+            {
+              "name": "payload",
+              "value": "={{ $json.body.payload || {} }}"
+            },
+            {
+              "name": "full_request",
+              "value": "={{ $json.body }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "parse-agent-request",
+      "name": "Parse Agent Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "resource": "rows",
+        "operation": "get",
+        "tableId": "user_profiles",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "equals",
+              "keyValue": "={{ $json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "lookup-user-context",
+      "name": "Lookup User Context",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [680, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-creds",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "rows",
+        "operation": "get",
+        "tableId": "user_configs",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "user_id",
+              "condition": "equals",
+              "keyValue": "={{ $('Parse Agent Request').item.json.user_id }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "get-user-config",
+      "name": "Get User Config",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [900, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-creds",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "user_id",
+              "value": "={{ $('Parse Agent Request').item.json.user_id }}"
+            },
+            {
+              "name": "agent_mode",
+              "value": "={{ $('Parse Agent Request').item.json.agent_mode }}"
+            },
+            {
+              "name": "operation",
+              "value": "={{ $('Parse Agent Request').item.json.operation }}"
+            },
+            {
+              "name": "client_id",
+              "value": "={{ $('Parse Agent Request').item.json.client_id }}"
+            },
+            {
+              "name": "project_id",
+              "value": "={{ $('Parse Agent Request').item.json.project_id }}"
+            },
+            {
+              "name": "preferred_ai_model",
+              "value": "={{ $json.preferred_ai_model || 'claude-3-sonnet' }}"
+            },
+            {
+              "name": "timezone",
+              "value": "={{ $json.timezone || 'America/New_York' }}"
+            },
+            {
+              "name": "default_list_id",
+              "value": "={{ $json.integration_settings?.default_list_id || '901317115211' }}"
+            },
+            {
+              "name": "github_username",
+              "value": "={{ $json.integration_settings?.github_username || '' }}"
+            },
+            {
+              "name": "slack_channel_id",
+              "value": "={{ $json.slack_channel_id || '' }}"
+            }
+          ],
+          "object": [
+            {
+              "name": "payload",
+              "value": "={{ $('Parse Agent Request').item.json.payload }}"
+            },
+            {
+              "name": "user_profile",
+              "value": "={{ $('Lookup User Context').item.json }}"
+            },
+            {
+              "name": "notification_preferences",
+              "value": "={{ $json.notification_preferences || {} }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "enrich-context",
+      "name": "Enrich Context",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1120, 300]
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $json.agent_mode }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "task_manager",
+              "output": 0
+            },
+            {
+              "value2": "comment_processor",
+              "output": 1
+            },
+            {
+              "value2": "status_updater",
+              "output": 2
+            },
+            {
+              "value2": "report_generator",
+              "output": 3
+            },
+            {
+              "value2": "automation_handler",
+              "output": 4
+            }
+          ]
+        },
+        "fallbackOutput": 5
+      },
+      "id": "agent-router",
+      "name": "Agent Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1340, 300]
+    },
+    {
+      "parameters": {
+        "resource": "rows",
+        "operation": "get",
+        "tableId": "knowledge_assets",
+        "filterType": "manual",
+        "matchType": "anyFilter",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "client_id",
+              "condition": "equals",
+              "keyValue": "={{ $json.client_id }}"
+            },
+            {
+              "keyName": "project_id",
+              "condition": "equals",
+              "keyValue": "={{ $json.project_id }}"
+            }
+          ]
+        },
+        "options": {
+          "limit": 10
+        }
+      },
+      "id": "get-knowledge-context",
+      "name": "Get Knowledge Context",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1560, 200],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-creds",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "resource": "rows",
+        "operation": "get",
+        "tableId": "agency_training",
+        "filterType": "manual",
+        "matchType": "allFilters",
+        "filters": {
+          "conditions": [
+            {
+              "keyName": "active",
+              "condition": "equals",
+              "keyValue": "true"
+            }
+          ]
+        },
+        "options": {
+          "limit": 5
+        }
+      },
+      "id": "get-agency-training",
+      "name": "Get Agency Training",
+      "type": "n8n-nodes-base.supabase",
+      "typeVersion": 1,
+      "position": [1560, 300],
+      "credentials": {
+        "supabaseApi": {
+          "id": "supabase-creds",
+          "name": "Supabase API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "={{ $json.preferred_ai_model || 'claude-3-sonnet-20240229' }}"
+            },
+            {
+              "name": "max_tokens",
+              "value": "2048"
+            },
+            {
+              "name": "messages",
+              "value": "=[{\"role\": \"system\", \"content\": \"You are Vader, Andrew's AI systems strategist and ClickUp task manager. You analyze high-level instructions and break them into modular, systemized tasks. Use the provided agency training and client context to create intelligent, actionable tasks.\"}, {\"role\": \"user\", \"content\": \"User: \" + $json.user_profile.full_name + \" (\" + $json.user_profile.role + \")\\nOperation: \" + $json.operation + \"\\nClient: \" + $json.client_id + \"\\nProject: \" + ($json.project_id || 'General') + \"\\n\\nRequest: \" + JSON.stringify($json.payload) + \"\\n\\nAgency Training Context: \" + JSON.stringify($('Get Agency Training').all()) + \"\\n\\nProject Knowledge: \" + JSON.stringify($('Get Knowledge Context').all()) + \"\\n\\nPlease create structured ClickUp task data with appropriate priority, assignees, and detailed descriptions that incorporate our agency best practices and client context.\"}]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "task-manager-ai",
+      "name": "Task Manager AI (Vader)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1780, 200],
+      "credentials": {
+        "anthropicApi": {
+          "id": "anthropic-creds",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "={{ $('Enrich Context').item.json.preferred_ai_model || 'claude-3-sonnet-20240229' }}"
+            },
+            {
+              "name": "max_tokens",
+              "value": "1024"
+            },
+            {
+              "name": "messages",
+              "value": "=[{\"role\": \"system\", \"content\": \"You are a ClickUp comment processor AI with access to client context and agency best practices. Analyze comments intelligently and provide actionable responses.\"}, {\"role\": \"user\", \"content\": \"User: \" + $('Enrich Context').item.json.user_profile.full_name + \"\\nClient: \" + $('Enrich Context').item.json.client_id + \"\\nComment Analysis Request: \" + JSON.stringify($('Enrich Context').item.json.payload) + \"\\n\\nPlease analyze this comment and provide intelligent insights or suggested actions.\"}]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "comment-processor-ai",
+      "name": "Comment Processor AI",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 300],
+      "credentials": {
+        "anthropicApi": {
+          "id": "anthropic-creds",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.clickup.com/api/v2/task/{{ $json.payload.task_id }}/status",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "clickUpApi",
+        "sendHeaders": true,
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "status",
+              "value": "={{ $json.payload.status_to }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "status-updater",
+      "name": "Status Updater",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 400],
+      "credentials": {
+        "clickUpApi": {
+          "id": "clickup-creds",
+          "name": "ClickUp API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-3-sonnet-20240229"
+            },
+            {
+              "name": "max_tokens",
+              "value": "2048"
+            },
+            {
+              "name": "messages",
+              "value": "=[{\"role\": \"user\", \"content\": \"You are a ClickUp report generator AI. Generate a comprehensive report based on: \" + JSON.stringify($json.payload) + \". Context: \" + $json.project_context}]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "report-generator",
+      "name": "Report Generator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 500],
+      "credentials": {
+        "anthropicApi": {
+          "id": "anthropic-creds",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "url": "https://api.anthropic.com/v1/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "anthropicApi",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "anthropic-version",
+              "value": "2023-06-01"
+            }
+          ]
+        },
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "claude-3-sonnet-20240229"
+            },
+            {
+              "name": "max_tokens",
+              "value": "1024"
+            },
+            {
+              "name": "messages",
+              "value": "=[{\"role\": \"user\", \"content\": \"You are a ClickUp automation handler AI. Process this automation request: \" + JSON.stringify($json.payload) + \". Context: \" + $json.project_context + \". Operation: \" + $json.operation}]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "automation-handler",
+      "name": "Automation Handler",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [900, 600],
+      "credentials": {
+        "anthropicApi": {
+          "id": "anthropic-creds",
+          "name": "Anthropic API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "success"
+            },
+            {
+              "name": "agent_mode",
+              "value": "={{ $('Parse Agent Request').item.json.agent_mode }}"
+            },
+            {
+              "name": "operation",
+              "value": "={{ $('Parse Agent Request').item.json.operation }}"
+            },
+            {
+              "name": "client_id",
+              "value": "={{ $('Parse Agent Request').item.json.client_id }}"
+            },
+            {
+              "name": "message",
+              "value": "ClickUp AI Agent request processed successfully"
+            }
+          ],
+          "object": [
+            {
+              "name": "result",
+              "value": "={{ $json }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "final-response",
+      "name": "Final Response",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [1120, 400]
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "status",
+              "value": "error"
+            },
+            {
+              "name": "agent_mode",
+              "value": "={{ $('Parse Agent Request').item.json.agent_mode || 'unknown' }}"
+            },
+            {
+              "name": "message",
+              "value": "Unknown agent mode or processing error"
+            }
+          ],
+          "object": [
+            {
+              "name": "error_details",
+              "value": "={{ $json }}"
+            },
+            {
+              "name": "timestamp",
+              "value": "={{ new Date().toISOString() }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "error-handler",
+      "name": "Error Handler",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 1,
+      "position": [900, 700]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1340, 400]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Agent Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Agent Request": {
+      "main": [
+        [
+          {
+            "node": "Lookup User Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Lookup User Context": {
+      "main": [
+        [
+          {
+            "node": "Get User Config",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get User Config": {
+      "main": [
+        [
+          {
+            "node": "Enrich Context",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrich Context": {
+      "main": [
+        [
+          {
+            "node": "Agent Router",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Agent Router": {
+      "main": [
+        [
+          {
+            "node": "Get Knowledge Context",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Comment Processor AI",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Status Updater",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Report Generator",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Automation Handler",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Error Handler",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Knowledge Context": {
+      "main": [
+        [
+          {
+            "node": "Get Agency Training",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get Agency Training": {
+      "main": [
+        [
+          {
+            "node": "Task Manager AI (Vader)",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Task Manager AI (Vader)": {
+      "main": [
+        [
+          {
+            "node": "Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Comment Processor AI": {
+      "main": [
+        [
+          {
+            "node": "Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Status Updater": {
+      "main": [
+        [
+          {
+            "node": "Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Report Generator": {
+      "main": [
+        [
+          {
+            "node": "Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Automation Handler": {
+      "main": [
+        [
+          {
+            "node": "Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Error Handler": {
+      "main": [
+        [
+          {
+            "node": "Final Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Final Response": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "timezone": "America/New_York",
+    "saveManualExecutions": true,
+    "callerPolicy": "workflowsFromSameOwner"
+  },
+  "versionId": "1",
+  "id": "clickup-agent-ultimate",
+  "meta": {
+    "templateCredsSetupCompleted": true
+  },
+  "tags": [
+    {
+      "createdAt": "2024-01-01T00:00:00.000Z",
+      "updatedAt": "2024-01-01T00:00:00.000Z",
+      "id": "clickup-ai-agent",
+      "name": "ClickUp AI Agent"
+    }
+  ]
+}

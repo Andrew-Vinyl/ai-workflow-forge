@@ -337,6 +337,71 @@
     },
     {
       "parameters": {
+        "url": "https://api.openai.com/v1/chat/completions",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "openAiApi",
+        "sendHeaders": true,
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {
+              "name": "model",
+              "value": "gpt-4o-mini"
+            },
+            {
+              "name": "max_tokens",
+              "value": "2048"
+            },
+            {
+              "name": "messages",
+              "value": "=[{\"role\": \"system\", \"content\": \"You are Vader, Andrew's AI systems strategist and ClickUp task manager. You analyze high-level instructions and break them into modular, systemized tasks. Use the provided agency training and client context to create intelligent, actionable tasks.\"}, {\"role\": \"user\", \"content\": \"User: \" + $('Enrich Context').item.json.user_profile.full_name + \" (\" + $('Enrich Context').item.json.user_profile.role + \")\\nOperation: \" + $('Enrich Context').item.json.operation + \"\\nClient: \" + $('Enrich Context').item.json.client_id + \"\\nProject: \" + ($('Enrich Context').item.json.project_id || 'General') + \"\\n\\nRequest: \" + JSON.stringify($('Enrich Context').item.json.payload) + \"\\n\\nAgency Training Context: \" + JSON.stringify($('Get Agency Training').all()) + \"\\n\\nProject Knowledge: \" + JSON.stringify($('Get Knowledge Context').all()) + \"\\n\\nPlease create structured ClickUp task data with appropriate priority, assignees, and detailed descriptions that incorporate our agency best practices and client context.\"}]"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "task-manager-ai-openai",
+      "name": "Task Manager AI (GPT-4o-mini)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [1780, 400],
+      "credentials": {
+        "openAiApi": {
+          "id": "openai-dynamic",
+          "name": "OpenAI API"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "dataType": "string",
+        "value1": "={{ $('Enrich Context').item.json.preferred_ai_model }}",
+        "rules": {
+          "rules": [
+            {
+              "value2": "gpt-4o-mini",
+              "output": 0
+            },
+            {
+              "value2": "gpt-4",
+              "output": 0
+            },
+            {
+              "value2": "gpt-3.5-turbo",
+              "output": 0
+            }
+          ]
+        },
+        "fallbackOutput": 1
+      },
+      "id": "ai-model-router",
+      "name": "AI Model Router",
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 1,
+      "position": [1560, 400]
+    },
+    {
+      "parameters": {
         "url": "https://api.anthropic.com/v1/messages",
         "authentication": "predefinedCredentialType",
         "nodeCredentialType": "anthropicApi",

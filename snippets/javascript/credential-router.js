@@ -134,6 +134,9 @@ await logApiUsage({
   costAttribution: credentialInfo.costAttribution,
   success: true
 }, supabaseClient);
+
+// Note: In n8n v1.105.4+, use $env instead of process.env
+// Example: $env.ANTHROPIC_API_KEY instead of process.env.ANTHROPIC_API_KEY
 */
 
 module.exports = {

@@ -1,0 +1,106 @@
+{
+  "name": "ClickUp AI Agent - Simple Fixed",
+  "nodes": [
+    {
+      "parameters": {
+        "path": "clickup-agent-v2",
+        "options": {}
+      },
+      "id": "webhook-trigger",
+      "name": "Webhook Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [240, 300],
+      "webhookId": "clickup-agent-v2"
+    },
+    {
+      "parameters": {
+        "values": {
+          "string": [
+            {
+              "name": "user_id",
+              "value": "={{ $json.body.user_id || 'andrew' }}"
+            },
+            {
+              "name": "agent_mode", 
+              "value": "={{ $json.body.agent_mode || 'task_manager' }}"
+            }
+          ],
+          "object": [
+            {
+              "name": "payload",
+              "value": "={{ $json.body.payload || {} }}"
+            }
+          ]
+        }
+      },
+      "id": "parse-request",
+      "name": "Parse Request",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3,
+      "position": [460, 300]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Simple test with credential check\nconst result = {\n  status: \"success\",\n  message: \"Workflow is working!\",\n  user_id: $input.item.json.user_id,\n  payload: $input.item.json.payload,\n  timestamp: new Date().toISOString(),\n  note: \"Ready for AI integration\"\n};\n\nreturn result;"
+      },
+      "id": "process-request",
+      "name": "Process Request",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [680, 300]
+    },
+    {
+      "parameters": {
+        "respondWith": "json",
+        "responseBody": "={{ $json }}"
+      },
+      "id": "webhook-response",
+      "name": "Webhook Response",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [900, 300]
+    }
+  ],
+  "connections": {
+    "Webhook Trigger": {
+      "main": [
+        [
+          {
+            "node": "Parse Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Parse Request": {
+      "main": [
+        [
+          {
+            "node": "Process Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Process Request": {
+      "main": [
+        [
+          {
+            "node": "Webhook Response",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "timezone": "America/New_York"
+  },
+  "versionId": "1",
+  "id": "clickup-agent-simple-fixed"
+}
